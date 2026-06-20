@@ -385,7 +385,7 @@ def argv_print():
     print("------------------------------")
 
 def copyConf():
-    os.system("sudo " + pkg_path + "sw/firmware/copy " + str(model) + " " + strBDName())
+    os.system("sudo " + pkg_path + "sw/firmware/copy " + str(model) + " " + strBDName() + " " + pkg_path)
     os.system(script_path + "conf/etc/ip_config.sh " + strSTA() + " " +  str(relay_type) + " " + str(static_ip) + " " + str(batman))
 
 def startNAT():
