@@ -3,8 +3,8 @@
 import os
 import time
 from mesh import *
-
-script_path = "/home/pi/nrc_pkg/script/"
+homedir = os.path.expanduser("~")
+script_path = homedir + "/nrc_pkg/script/"
 
 def stopNAT():
     os.system('sudo sh -c "echo 0 > /proc/sys/net/ipv4/ip_forward"')
