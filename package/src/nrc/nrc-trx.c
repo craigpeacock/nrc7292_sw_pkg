@@ -43,6 +43,7 @@
 #ifdef CONFIG_S1G_CHANNEL
 #include "nrc-s1g.h"
 #endif
+#include "nrc-trx.h"
 
 #define WLAN_FC_GET_TYPE(fc)	(((fc) & 0x000c) >> 2)
 #define WLAN_FC_GET_STYPE(fc)	(((fc) & 0x00f0) >> 4)

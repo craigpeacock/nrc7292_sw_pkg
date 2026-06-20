@@ -965,7 +965,11 @@ static int nrc_mac_start(struct ieee80211_hw *hw)
 	return 0;
 }
 
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(6, 9, 0)
+void nrc_mac_stop(struct ieee80211_hw *hw, bool suspend)
+#else
 void nrc_mac_stop(struct ieee80211_hw *hw)
+#endif
 {
 	struct nrc *nw = hw->priv;
 	int ret = 0;
@@ -1463,7 +1467,7 @@ void nrc_mac_add_tlv_channel(struct sk_buff *skb,
 }
 #endif /* CONFIG_SUPPORT_CHANNEL_INFO */
 
-static int nrc_mac_config(struct ieee80211_hw *hw, u32 changed)
+static int nrc_mac_config(struct ieee80211_hw *hw, int radio_idx, u32 changed)
 {
 	struct nrc *nw = hw->priv;
 	struct wim_pm_param *p;
@@ -1774,8 +1778,9 @@ void nrc_mac_bss_info_changed(struct ieee80211_hw *hw,
 			spin_lock_bh(&nw->vif_lock);
 			if (!disable_cqm) {
 				nw->beacon_timeout = 0;
-				nrc_mac_dbg("del_timer in %s:%d", __FUNCTION__, __LINE__);
-				try_to_del_timer_sync(&nw->bcn_mon_timer);
+				nrc_mac_dbg("timer_delete in %s:%d", __FUNCTION__, __LINE__);
+				timer_delete_sync_try(&nw->bcn_mon_timer);
+
 			}
 			nw->associated_vif = NULL;
 			spin_unlock_bh(&nw->vif_lock);
@@ -2523,14 +2528,14 @@ __nrc_mac_hw_scan(struct ieee80211_hw *hw, struct ieee80211_vif *vif,
 	if(nw->associated_vif) {
 		if (!disable_cqm) {
 			nrc_mac_dbg("%s CQM timer off %u", __func__, nw->beacon_timeout);
-			try_to_del_timer_sync(&nw->bcn_mon_timer);
+			timer_delete_sync_try(&nw->bcn_mon_timer);
 		}
 
 		if (ieee80211_hw_check(nw->hw, SUPPORTS_DYNAMIC_PS)) {
 			if (nw->drv_state >= NRC_DRV_RUNNING &&
 				nw->hw->conf.dynamic_ps_timeout > 0) {
 				nrc_mac_dbg("%s PS timer off %ul", __func__, nw->hw->conf.dynamic_ps_timeout);
-				try_to_del_timer_sync(&nw->dynamic_ps_timer);
+				timer_delete_sync_try(&nw->dynamic_ps_timer);
 			}
 		}
 	}
@@ -2788,7 +2793,8 @@ static void nrc_mac_get_et_stats(struct ieee80211_hw *hw,
 }
 #endif
 
-static int nrc_mac_set_rts_threshold(struct ieee80211_hw *hw, u32 value)
+static int nrc_mac_set_rts_threshold(struct ieee80211_hw *hw, int radio_idx, 
+								u32 value) 
 {
 	struct sk_buff *skb;
 	struct nrc *nw = hw->priv;
@@ -3254,7 +3260,8 @@ static int nrc_pre_channel_switch(struct ieee80211_hw *hw,struct ieee80211_vif *
 	return 0;
 }
 
-static int nrc_post_channel_switch(struct ieee80211_hw *hw, struct ieee80211_vif *vif)
+static int nrc_post_channel_switch(struct ieee80211_hw *hw, struct ieee80211_vif *vif, 
+									struct ieee80211_bss_conf *link_conf)
 {
 	nrc_dbg(NRC_DBG_STATE, "[%s, %d] Channel switch complete\n", __func__, __LINE__);
 	return 0;
@@ -3353,7 +3360,7 @@ int nrc_mac_suspend(struct ieee80211_hw *hw, struct cfg80211_wowlan *wowlan)
 #endif
 
 	if (!disable_cqm) {
-		try_to_del_timer_sync(&nw->bcn_mon_timer);
+		timer_delete_sync_try(&nw->bcn_mon_timer);
 	}
 
 	nrc_hif_sleep_target_start(nw->hif, NRC_PS_DEEPSLEEP_NONTIM);
@@ -3398,7 +3405,7 @@ static u32 nrc_get_expected_throughput(struct ieee80211_sta *sta)
 }
 
 #define MPDU_LEN_THRESHOLD			511 		/* See lmac_11ah.h  */
-static int nrc_set_frag_threshold(struct ieee80211_hw *hw, u32 value)
+static int nrc_set_frag_threshold(struct ieee80211_hw *hw, int radio_idx, u32 value)
 {
 	struct nrc *nw = hw->priv;
 
@@ -3496,6 +3503,10 @@ static const struct ieee80211_ops nrc_mac80211_ops = {
 	.unassign_vif_chanctx = nrc_mac_unassign_vif_chanctx,
 	.switch_vif_chanctx = nrc_mac_switch_vif_chanctx,
 #endif
+	.add_chanctx = ieee80211_emulate_add_chanctx,
+	.remove_chanctx = ieee80211_emulate_remove_chanctx,
+	.change_chanctx = ieee80211_emulate_change_chanctx,
+	.switch_vif_chanctx = ieee80211_emulate_switch_vif_chanctx,
 	.channel_switch_beacon = nrc_mac_channel_switch_beacon,
 	.pre_channel_switch = nrc_pre_channel_switch,
 	.post_channel_switch = nrc_post_channel_switch,
@@ -4509,7 +4520,7 @@ void nrc_bcn_mon_timer(unsigned long data)
 #else
 void nrc_bcn_mon_timer(struct timer_list *t)
 {
-	struct nrc *nw = from_timer(nw, t, bcn_mon_timer);
+	struct nrc *nw = timer_container_of(nw, t, bcn_mon_timer);
 #endif
 	//nrc_mac_dbg("[%s,L%d]", __func__, __LINE__);
 	if (nw->drv_state == NRC_DRV_PS) {
@@ -4527,7 +4538,7 @@ static void nrc_ps_timeout_timer(unsigned long data)
 #else
 static void nrc_ps_timeout_timer(struct timer_list *t)
 {
-	struct nrc *nw = from_timer(nw, t, dynamic_ps_timer);
+	struct nrc *nw = timer_container_of(nw, t, dynamic_ps_timer);
 #endif
 	struct nrc_hif_device *hdev = nw->hif;
 
@@ -4865,7 +4876,7 @@ void nrc_unregister_hw(struct nrc *nw)
 	nrc_hif_cleanup(nw->hif); 
 
 	if (ieee80211_hw_check(nw->hw, SUPPORTS_DYNAMIC_PS)) {
-		del_timer(&nw->dynamic_ps_timer);
+		timer_delete(&nw->dynamic_ps_timer);
 	}
 }
 

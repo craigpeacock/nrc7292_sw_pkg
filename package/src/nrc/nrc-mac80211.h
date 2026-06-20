@@ -99,13 +99,18 @@ void nrc_mac_add_tlv_channel(struct sk_buff *skb,
 #endif
 int nrc_mac_sta_remove(struct ieee80211_hw *hw, struct ieee80211_vif *vif,
 		       struct ieee80211_sta *sta);
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(6, 9, 0)
+void nrc_mac_stop(struct ieee80211_hw *hw, bool suspend);
+#else
 void nrc_mac_stop(struct ieee80211_hw *hw);
+#endif
 
 int nrc_mac_rx(struct nrc *nw, struct sk_buff *skb);
 void nrc_mac_trx_init(struct nrc *nw);
 
 bool nrc_mac_is_s1g(struct nrc *nw);
 bool nrc_access_vif(struct nrc *nw);
+const char *iftype_string(enum nl80211_iftype iftype);
 
 void nrc_free_vif_index(struct nrc *nw, struct ieee80211_vif *vif);
 
@@ -121,6 +126,7 @@ void init_s1g_channels(struct nrc *nw);
 
 void nrc_mac_clean_txq(struct nrc *nw);
 void nrc_mac_flush_txq(struct nrc *nw);
+unsigned int nrc_ac_credit(struct nrc *nw, int ac);
 void nrc_send_beacon_loss(struct nrc *nw);
 
 
@@ -148,5 +154,18 @@ void nrc_cleanup_txq_by_macaddr (struct nrc *nw, struct ieee80211_vif *vif,
 void nrc_cleanup_ba_session_sta (void *data, struct ieee80211_sta *sta);
 void nrc_cleanup_ba_session_vif (struct nrc *nw, struct ieee80211_vif *vif);
 void nrc_cleanup_ba_session_all (struct nrc *nw);
+
+void scan_complete(struct ieee80211_hw *hw, bool aborted);
+void nrc_mac_set_wakeup(struct ieee80211_hw *hw, bool enabled);
+int nrc_mac_resume(struct ieee80211_hw *hw);
+int nrc_mac_suspend(struct ieee80211_hw *hw, struct cfg80211_wowlan *wowlan);
+
+#if KERNEL_VERSION(4, 15, 0) > NRC_TARGET_KERNEL_VERSION
+void remotecmd_callback(unsigned long ptr);
+#else
+void remotecmd_callback(struct timer_list *t);
+#endif
+void remotecmd_schedule_off(struct wiphy *wiphy, struct wireless_dev *wdev,
+				u8 subcmd, const u8 cntdwn, u16 beacon_int);
 
 #endif

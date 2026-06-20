@@ -38,4 +38,5 @@ int nrc_nw_start (struct nrc *nw);
 int nrc_nw_stop (struct nrc *nw);
 int nrc_nw_set_model_conf (struct nrc *nw, u16 chip_id);
 int country_match(const char *const cc[], const char *const country);
+int nrc_fw_start(struct nrc *nw);
 #endif

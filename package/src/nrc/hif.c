@@ -18,6 +18,7 @@
 #include <linux/gpio.h>
 #include <linux/ip.h>
 #include <linux/tcp.h>
+#include <linux/spi/spi.h>
 
 #include "nrc-hif.h"
 #include "nrc-build-config.h"
@@ -42,6 +43,7 @@
 #if defined(DEBUG)
 #include "nrc-debug.h"
 #endif
+#include "hif.h"
 
 #define to_nw(dev)	((dev)->nw)
 #define WLAN_FC_GET_TYPE(fc)	(((fc) & 0x000c) >> 2)
@@ -303,7 +305,7 @@ static void nrc_hif_ps_work(struct work_struct *work)
 
 		if (power_save >= NRC_PS_DEEPSLEEP_TIM) {
 			if (!disable_cqm) {
-				try_to_del_timer_sync(&nw->bcn_mon_timer);
+				timer_delete_sync_try(&nw->bcn_mon_timer);
 			}
 			p->ps_wakeup_pin = power_save_gpio[1];
 			p->ps_duration = (uint64_t) sleep_duration[0] * (sleep_duration[1] ? 1000 : 1);

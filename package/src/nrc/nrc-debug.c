@@ -17,6 +17,7 @@
 #include <linux/platform_device.h>
 #include <linux/seq_file.h>
 #include <linux/math64.h>
+#include <linux/spi/spi.h>
 #include "nrc-debug.h"
 #include "nrc-hif.h"
 #include "nrc-wim-types.h"
@@ -112,7 +113,7 @@ int nrc_mac_dump_frame(struct nrc *nw, struct sk_buff *skb, const char *prefix)
 		tim = cfg80211_find_ie(WLAN_EID_TIM, start, end - start);
 		if (tim &&
 		    ieee80211_check_tim((struct ieee80211_tim_ie *)&tim[2],
-					tim[1], nw->aid))
+					tim[1], nw->aid, true))
 			str = "(tim)";
 
 		nrc_dbg(NRC_DBG_MAC, "%s beacon %s", prefix, str);

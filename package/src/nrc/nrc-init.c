@@ -849,7 +849,7 @@ void nrc_nw_free(struct nrc *nw)
 	tasklet_kill(&nw->tx_tasklet);
 
 	if (!disable_cqm) {
-		del_timer(&nw->bcn_mon_timer);
+		timer_delete(&nw->bcn_mon_timer);
 	}
 
 	if (nw->workqueue != NULL) {

@@ -549,7 +549,7 @@ static int ssp_remove(struct spi_device *spi)
 	destroy_workqueue(priv->tx_wq);
 	spi_set_drvdata(spi, NULL);
 
-	del_timer(&hif->exp_timer);
+	timer_delete(&hif->exp_timer);
 
 	kfree(priv);
 	nrc_dbg(NRC_DBG_HIF, "-%s", __func__);

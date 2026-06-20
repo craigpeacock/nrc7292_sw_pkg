@@ -22,7 +22,7 @@
 #include <linux/irqreturn.h>
 #include <linux/interrupt.h>
 #include <net/mac80211.h>
-#include <asm/unaligned.h>
+#include <linux/unaligned.h>
 #include <linux/smp.h>
 #ifdef CONFIG_SUPPORT_AFTER_KERNEL_3_0_36
 #include <linux/timekeeping.h>
@@ -38,6 +38,7 @@
 #include "nrc-mac80211.h"
 #include "nrc-stats.h"
 #include "wim.h"
+#include "nrc-hif-cspi.h"
 
 static bool once;
 static bool cspi_suspend;
@@ -1372,7 +1373,7 @@ no_restart:
 						nw->vif[nw->d_deauth.vif_index] = NULL;
 						nw->enable_vif[nw->d_deauth.vif_index] = false;
 						atomic_set(&nw->d_deauth.delayed_deauth, 0);
-						nrc_mac_stop(nw->hw);
+						nrc_mac_stop(nw->hw, false);
 					}
 					while (atomic_read(&nw->d_deauth.delayed_deauth)) {
 						atomic_set(&nw->d_deauth.delayed_deauth, 0);

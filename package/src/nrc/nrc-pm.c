@@ -252,7 +252,7 @@ static void ap_max_idle_period_expire(unsigned long data)
 #else
 static void ap_max_idle_period_expire(struct timer_list *t)
 {
-	struct nrc_vif *i_vif = from_timer(i_vif, t, max_idle_timer);
+	struct nrc_vif *i_vif = timer_container_of(i_vif, t, max_idle_timer);
 #endif
 	struct nrc_sta *i_sta = NULL, *tmp = NULL;
 	unsigned long flags;
@@ -308,7 +308,7 @@ static void sta_max_idle_period_expire(unsigned long data)
 #else
 static void sta_max_idle_period_expire(struct timer_list *t)
 {
-	struct nrc_vif *i_vif = from_timer(i_vif, t, max_idle_timer);
+	struct nrc_vif *i_vif = timer_container_of(i_vif, t, max_idle_timer);
 #endif
 	struct ieee80211_hw *hw = i_vif->nw->hw;
 	struct nrc_sta *i_sta = NULL, *tmp = NULL, *tmp_sta = NULL;
@@ -454,7 +454,7 @@ static int sta_h_bss_max_idle_period(struct ieee80211_hw *hw,
 		  i_sta->max_idle.period > 0) {
 			nrc_mac_dbg("STA(%pM) deauth. Delete bss_max_idle timer(%u)",
 				sta->addr,i_sta->max_idle.idle_period);
-			del_timer_sync(&i_vif->max_idle_timer);
+			timer_delete_sync(&i_vif->max_idle_timer);
 			i_sta->max_idle.idle_period = 0;
 		} else if(vif->type == NL80211_IFTYPE_AP) {
 			struct nrc_sta *bss_sta = NULL, *tmp = NULL;
@@ -466,7 +466,7 @@ static int sta_h_bss_max_idle_period(struct ieee80211_hw *hw,
 			}
 			spin_unlock_irqrestore(&i_vif->preassoc_sta_lock, flags);
 			nrc_mac_dbg("%s: vif(%d) Delete AP bss_max_idle timer", __func__, i_vif->index);
-			del_timer_sync(&i_vif->max_idle_timer);
+			timer_delete_sync(&i_vif->max_idle_timer);
 		}
 		return 0;
 	} else if (!state_changed(ASSOC, AUTHORIZED)) {

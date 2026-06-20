@@ -39,7 +39,8 @@ ccflags-y += \
 endif
 
 #ccflags-y += -Wall -Werror -g
-ccflags-y += -Wall -Werror
+ccflags-y += -Wall -Werror -Wno-unused-function 
+#-Wno-missing-prototypes
 
 all: modules
 

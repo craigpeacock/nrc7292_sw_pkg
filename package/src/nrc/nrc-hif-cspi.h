@@ -19,5 +19,9 @@
 
 struct nrc_hif_device *nrc_hif_cspi_init(void);
 int nrc_hif_cspi_exit(struct nrc_hif_device *hdev);
+void nrc_hif_cspi_read_credit(struct nrc_hif_device *hdev, int q, int *p_front, int *p_rear, int *p_credit);
+void spi_wakeup(struct nrc_hif_device *hdev);
+int nrc_cspi_gpio_alloc(struct spi_device *spi);
+void nrc_cspi_gpio_free(struct spi_device *spi);
 
 #endif
