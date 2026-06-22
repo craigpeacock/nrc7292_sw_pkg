@@ -1,3 +1,12 @@
+# NRC7292 Software Package for ALFA Network AHPI7292S
+
+![Alfa Network AHPI7292S 802.11ah Halow WiFi Hat](https://www.beyondlogic.org/wp-content/uploads/2026/06/ahpi7292s-IEEE-802.11ah-sub-1-GHz-module-in-Raspberry-Pi-HAT-678x381.webp)
+
+This is a fork of the Newracom NRC7292 Software Package for Host mode (Linux OS) updated to work with Linux Kernel version 6.18 and with board files suitable for the ALFA Network AHPI7292S.
+
+More information can be found at 
+https://www.beyondlogic.org/building-an-updated-802-11ah-driver-for-the-alfa-network-ahpi7292s/
+
 # NRC7292 Software Package for Host mode (Linux OS)
 
 ## Notice
